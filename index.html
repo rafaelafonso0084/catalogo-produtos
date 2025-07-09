@@ -19,62 +19,67 @@
   </div>
 
   <!-- Produtos -->
-  <div id="productList" class="grid grid-cols-1 md:grid-cols-3 gap-4"></div>
+  <div id="productList" class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-20"></div>
+
+  <!-- Carrinho -->
+  <div class="fixed bottom-0 left-0 right-0 bg-white shadow p-4 border-t border-gray-300">
+    <h2 class="text-xl font-bold mb-2">🛒 Carrinho</h2>
+    <ul id="cartItems" class="mb-2 list-disc list-inside text-sm text-gray-700"></ul>
+    <button id="sendWhatsApp" class="bg-[#25D366] hover:bg-[#1DA851] text-white font-semibold px-6 py-2 rounded transition disabled:opacity-50 disabled:cursor-not-allowed" disabled>
+      Enviar Pedido via WhatsApp
+    </button>
+  </div>
 
   <script>
     const API_URL = "https://script.google.com/macros/s/AKfycbxHKtY2I_kHSBJRgUKBJKAj01o3lokp4_4P_aRtiPjx-zuBwOR-4RBaimB-hax0liGxqg/exec";
+    const numeroWhatsApp = "5521970462260";
 
     let produtos = [];
-
-    async function carregarDados() {
-    try {
-        const resposta = await fetch(API_URL);
-        produtos = await resposta.json();
-        populateCategories();
-        renderProducts(produtos);
-    } catch (erro) {
-        productList.innerHTML = `<p class="text-red-500">Erro ao carregar produtos: ${erro}</p>`;
-    }
-    }
+    let carrinho = [];
 
     const productList = document.getElementById('productList');
     const searchInput = document.getElementById('search');
     const categoryFilter = document.getElementById('categoryFilter');
+    const cartItems = document.getElementById('cartItems');
+    const sendWhatsApp = document.getElementById('sendWhatsApp');
+
+    async function carregarDados() {
+      try {
+        const resposta = await fetch(API_URL);
+        produtos = await resposta.json();
+        populateCategories();
+        renderProducts(produtos);
+      } catch (erro) {
+        productList.innerHTML = `<p class="text-red-500">Erro ao carregar produtos: ${erro}</p>`;
+      }
+    }
 
     function renderProducts(data) {
-  productList.innerHTML = '';
-  if (data.length === 0) {
-    productList.innerHTML = '<p class="text-center col-span-3">Nenhum produto encontrado.</p>';
-    return;
-  }
+      productList.innerHTML = '';
+      if (data.length === 0) {
+        productList.innerHTML = '<p class="text-center col-span-3">Nenhum produto encontrado.</p>';
+        return;
+      }
 
-  data.forEach(produto => {
-    const card = document.createElement('div');
-    card.className = 'bg-white rounded-lg p-4 shadow';
+      data.forEach(produto => {
+        const card = document.createElement('div');
+        card.className = 'bg-white rounded-lg p-4 shadow';
 
-    const numeroWhatsApp = "5521970462260";
+        card.innerHTML = `
+          <h2 class="text-lg font-semibold">${produto.Produtos}</h2>
+          <p class="text-sm text-gray-600">Código: ${produto.Código}</p>
+          <p class="text-sm text-gray-600 mb-2">Categoria: ${produto.Categoria}</p>
+          <button class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded font-semibold shadow mt-2">
+            Adicionar ao Carrinho
+          </button>
+        `;
 
-    const mensagem = `Olá! Gostaria de informações sobre o produto:
-- Nome: ${produto.Produtos}
-- Código: ${produto.Código}
-- Categoria: ${produto.Categoria}`;
+        const button = card.querySelector('button');
+        button.addEventListener('click', () => adicionarAoCarrinho(produto));
 
-    const linkWhatsApp = `https://wa.me/${numeroWhatsApp}?text=${encodeURIComponent(mensagem)}`;
-
-    card.innerHTML = `
-      <h2 class="text-lg font-semibold">${produto.Produtos}</h2>
-      <p class="text-sm text-gray-600">Código: ${produto.Código}</p>
-      <p class="text-sm text-gray-600 mb-2">Categoria: ${produto.Categoria}</p>
-      <a href="${linkWhatsApp}" target="_blank"
-         class="inline-block bg-[#25D366] hover:bg-[#1DA851] text-white px-4 py-2 rounded mt-2 font-semibold shadow">
-        Pedir no WhatsApp
-      </a>
-    `;
-
-    productList.appendChild(card);
-  });
-}
-
+        productList.appendChild(card);
+      });
+    }
 
     function populateCategories() {
       const categorias = [...new Set(produtos.map(p => p.Categoria))];
@@ -100,10 +105,35 @@
       renderProducts(filtrado);
     }
 
+    function adicionarAoCarrinho(produto) {
+      carrinho.push(produto);
+      atualizarCarrinho();
+    }
+
+    function atualizarCarrinho() {
+      cartItems.innerHTML = '';
+      carrinho.forEach((p, i) => {
+        const li = document.createElement('li');
+        li.textContent = `${p.Produtos} (Código: ${p.Código})`;
+        cartItems.appendChild(li);
+      });
+
+      sendWhatsApp.disabled = carrinho.length === 0;
+    }
+
+    sendWhatsApp.addEventListener('click', () => {
+      if (carrinho.length === 0) return;
+
+      const mensagem = `Olá! Gostaria de fazer o seguinte pedido:\n\n` +
+        carrinho.map((p, i) => `${i + 1}. ${p.Produtos} (Código: ${p.Código}) - Categoria: ${p.Categoria}`).join('\n') +
+        `\n\nAguardo confirmação.`;
+
+      const link = `https://wa.me/${numeroWhatsApp}?text=${encodeURIComponent(mensagem)}`;
+      window.open(link, '_blank');
+    });
+
     // Inicialização
     carregarDados();
-
-
     searchInput.addEventListener('input', applyFilters);
     categoryFilter.addEventListener('change', applyFilters);
   </script>
