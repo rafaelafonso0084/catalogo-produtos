@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Catálogo de Produtos</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 p-4">
+
+  <h1 class="text-3xl font-bold mb-4 text-center">Catálogo de Produtos</h1>
+
+  <!-- Filtros -->
+  <div class="flex flex-col md:flex-row justify-between gap-4 mb-4">
+    <input type="text" id="search" placeholder="Buscar produto..." class="w-full md:w-1/2 px-4 py-2 rounded border border-gray-300" />
+    <select id="categoryFilter" class="w-full md:w-1/4 px-4 py-2 rounded border border-gray-300">
+      <option value="">Todas as categorias</option>
+    </select>
+  </div>
+
+  <!-- Produtos -->
+  <div id="productList" class="grid grid-cols-1 md:grid-cols-3 gap-4"></div>
+
+  <script>
+    const API_URL = "https://script.google.com/macros/s/AKfycbxHKtY2I_kHSBJRgUKBJKAj01o3lokp4_4P_aRtiPjx-zuBwOR-4RBaimB-hax0liGxqg/exec";
+
+    let produtos = [];
+
+    async function carregarDados() {
+    try {
+        const resposta = await fetch(API_URL);
+        produtos = await resposta.json();
+        populateCategories();
+        renderProducts(produtos);
+    } catch (erro) {
+        productList.innerHTML = `<p class="text-red-500">Erro ao carregar produtos: ${erro}</p>`;
+    }
+    }
+
+    const productList = document.getElementById('productList');
+    const searchInput = document.getElementById('search');
+    const categoryFilter = document.getElementById('categoryFilter');
+
+    function renderProducts(data) {
+      productList.innerHTML = '';
+      if (data.length === 0) {
+        productList.innerHTML = '<p class="text-center col-span-3">Nenhum produto encontrado.</p>';
+        return;
+      }
+      data.forEach(produto => {
+        const card = document.createElement('div');
+        const numeroWhatsApp = "552197046<2260";
+        card.className = 'bg-white rounded-lg p-4 shadow';
+
+        // Mensagem personalizada
+        const mensagem = `Olá! Gostaria de informações sobre o produto:
+        - Nome: ${produto.Produtos}
+        - Código: ${produto.Código}
+        - Categoria: ${produto.Categoria}`;
+
+        const linkWhatsApp = `https://wa.me/${numeroWhatsApp}?text=${encodeURIComponent(mensagem)}`;
+
+
+        card.innerHTML = `
+          <h2 class="text-lg font-semibold">${produto.Produtos}</h2>
+          <p class="text-sm text-gray-600">Código: ${produto.Código}</p>
+          <p class="text-sm text-gray-600 mb-2">Categoria: ${produto.Categoria}</p>
+          <a href="https://wa.me/${numeroWhatsApp}?text=Olá!%20Gostaria%20de%20informações%20sobre%20o%20produto:%20${encodeURIComponent(produto.Produtos)}"
+            Pedir no WhatsApp
+          </a>
+        `;
+        productList.appendChild(card);
+      });
+    }
+
+    function populateCategories() {
+      const categorias = [...new Set(produtos.map(p => p.Categoria))];
+      categorias.forEach(cat => {
+        const opt = document.createElement('option');
+        opt.value = cat;
+        opt.textContent = cat;
+        categoryFilter.appendChild(opt);
+      });
+    }
+
+    function applyFilters() {
+      const termo = searchInput.value.toLowerCase();
+      const categoria = categoryFilter.value;
+
+      const filtrado = produtos.filter(p => {
+        return (
+          (!categoria || p.Categoria === categoria) &&
+          p.Produtos.toLowerCase().includes(termo)
+        );
+      });
+
+      renderProducts(filtrado);
+    }
+
+    // Inicialização
+    carregarDados();
+
+
+    searchInput.addEventListener('input', applyFilters);
+    categoryFilter.addEventListener('change', applyFilters);
+  </script>
+</body>
+</html>
