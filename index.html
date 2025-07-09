@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Catálogo de Produtos</title>
+  <title>Catálogo de Produtos - Fornecedora Presidente</title>
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-gray-100 p-4">
@@ -42,36 +42,39 @@
     const categoryFilter = document.getElementById('categoryFilter');
 
     function renderProducts(data) {
-      productList.innerHTML = '';
-      if (data.length === 0) {
-        productList.innerHTML = '<p class="text-center col-span-3">Nenhum produto encontrado.</p>';
-        return;
-      }
-      data.forEach(produto => {
-        const card = document.createElement('div');
-        const numeroWhatsApp = "552197046<2260";
-        card.className = 'bg-white rounded-lg p-4 shadow';
+  productList.innerHTML = '';
+  if (data.length === 0) {
+    productList.innerHTML = '<p class="text-center col-span-3">Nenhum produto encontrado.</p>';
+    return;
+  }
 
-        // Mensagem personalizada
-        const mensagem = `Olá! Gostaria de informações sobre o produto:
-        - Nome: ${produto.Produtos}
-        - Código: ${produto.Código}
-        - Categoria: ${produto.Categoria}`;
+  data.forEach(produto => {
+    const card = document.createElement('div');
+    card.className = 'bg-white rounded-lg p-4 shadow';
 
-        const linkWhatsApp = `https://wa.me/${numeroWhatsApp}?text=${encodeURIComponent(mensagem)}`;
+    const numeroWhatsApp = "5521970462260";
 
+    const mensagem = `Olá! Gostaria de informações sobre o produto:
+- Nome: ${produto.Produtos}
+- Código: ${produto.Código}
+- Categoria: ${produto.Categoria}`;
 
-        card.innerHTML = `
-          <h2 class="text-lg font-semibold">${produto.Produtos}</h2>
-          <p class="text-sm text-gray-600">Código: ${produto.Código}</p>
-          <p class="text-sm text-gray-600 mb-2">Categoria: ${produto.Categoria}</p>
-          <a href="https://wa.me/${numeroWhatsApp}?text=Olá!%20Gostaria%20de%20informações%20sobre%20o%20produto:%20${encodeURIComponent(produto.Produtos)}"
-            Pedir no WhatsApp
-          </a>
-        `;
-        productList.appendChild(card);
-      });
-    }
+    const linkWhatsApp = `https://wa.me/${numeroWhatsApp}?text=${encodeURIComponent(mensagem)}`;
+
+    card.innerHTML = `
+      <h2 class="text-lg font-semibold">${produto.Produtos}</h2>
+      <p class="text-sm text-gray-600">Código: ${produto.Código}</p>
+      <p class="text-sm text-gray-600 mb-2">Categoria: ${produto.Categoria}</p>
+      <a href="${linkWhatsApp}" target="_blank"
+         class="inline-block bg-[#25D366] hover:bg-[#1DA851] text-white px-4 py-2 rounded mt-2 font-semibold shadow">
+        Pedir no WhatsApp
+      </a>
+    `;
+
+    productList.appendChild(card);
+  });
+}
+
 
     function populateCategories() {
       const categorias = [...new Set(produtos.map(p => p.Categoria))];
